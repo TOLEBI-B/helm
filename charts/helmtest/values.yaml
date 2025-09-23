@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: tolebi1/helm            # твой образ в Docker Hub
+  tag: latest                             # в CI заменим на sha
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false        # true если хочешь внешний доступ через домен
+  className: traefik    # k3s по умолчанию ставит Traefik
+  host: tolebi.compnet.kz # замени на свой домен
