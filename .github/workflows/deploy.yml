@@ -1,3 +1,33 @@
+name: CI/CD helm
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  IMAGE_NAME: tolebi1/helm
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -18,7 +48,7 @@
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-
+      
       - name: Debug repo files
         run: |
           echo "=== root repo ==="
@@ -27,7 +57,6 @@
           ls -l charts/helmtest || echo "charts/helmtest not found"
           echo "=== recursive ==="
           ls -R charts || true
-
       - name: Helm template (sanity check)
         run: helm template helm ./charts/helmtest
 
